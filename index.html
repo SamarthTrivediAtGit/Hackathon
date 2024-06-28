@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predict Cost Calculator</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    animation: fade-in 0.6s ease-out;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .input-group {
+    margin-bottom: 15px;
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: slide-in 0.3s forwards;
+  }
+
+  @keyframes slide-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    color: #666;
+  }
+
+  input[type="number"],
+  select {
+    width: calc(100% - 20px);
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+  }
+
+  select {
+    width: 100%;
+  }
+
+  input:focus,
+  select:focus {
+    outline: none;
+    border-color: #4CAF50;
+  }
+
+  button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+  }
+
+  button:hover {
+    background-color: #45a049;
+  }
+
+  #predictedCost {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #f3f3f3;
+    border-radius: 4px;
+    opacity: 0;
+    animation: fade-in-predicted 0.6s forwards;
+  }
+
+  @keyframes fade-in-predicted {
+    to {
+      opacity: 1;
+    }
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h2>Car Parts Price Predictor</h2>
+    
+    <div class="input-group">
+      <input type="checkbox" id="includeTotalMass">
+      <label for="totalMass">Total Mass:</label>
+      <input type="number" step="0.01" id="totalMass" class="input-field hidden">
+    </div>
+
+    <div class="input-group">
+      <input type="checkbox" id="includePaintedBodyColour">
+      <label for="paintedBodyColour">Painted Body Colour:</label>
+      <input type="number" step="0.01" id="paintedBodyColour" class="input-field hidden">
+    </div>
+
+    <div class="input-group">
+      <input type="checkbox" id="includePaintedGlossBlack">
+      <label for="paintedGlossBlack">Painted Gloss Black:</label>
+      <input type="number" step="0.01" id="paintedGlossBlack" class="input-field hidden">
+    </div>
+
+    <div class="input-group">
+      <input type="checkbox" id="includeGrainedPlastic">
+      <label for="grainedPlastic">Grained Plastic:</label>
+      <input type="number" step="0.01" id="grainedPlastic" class="input-field hidden">
+    </div>
+
+    <div class="input-group">
+      <input type="checkbox" id="includeJobDate">
+      <label for="jobDate">Job 1 Date:</label>
+      <select id="jobDate" class="input-field hidden">
+        <option value="">Select a year</option>
+        <script>
+          for (let year = new Date().getFullYear(); year >= 2000; year--) {
+            document.write(`<option value="${year}">${year}</option>`);
+          }
+        </script>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <input type="checkbox" id="includeCountryOfProduction">
+      <label for="countryOfProduction">Country of Production:</label>
+      <select id="countryOfProduction" class="input-field hidden">
+        <option value="">Select a country</option>
+        <option value="UK">UK</option>
+        <option value="SVK">SVK</option>
+      </select>
+    </div>
+
+    <div class="input-group">
+      <input type="checkbox" id="includeVehicleVolume">
+      <label for="vehicleVolume">Vehicle Volume:</label>
+      <input type="number" step="0.01" id="vehicleVolume" class="input-field hidden">
+    </div>
+
+    <div class="input-group">
+      <input type="checkbox" id="includeNumberOfParts">
+      <label for="numberOfParts">Number of Parts within Construction:</label>
+      <input type="number" step="0.01" id="numberOfParts" class="input-field hidden">
+    </div>
+
+    <button onclick="calculateCost()">Predict Cost</button>
+
+    <div id="predictedCost"></div>
+  </div>
+
+  <script>
+    // Function to toggle visibility of input fields based on checkbox state
+    function toggleVisibility(event) {
+      const checkbox = event.target;
+      const inputField = checkbox.nextElementSibling.nextElementSibling;
+      if (checkbox.checked) {
+        inputField.classList.remove('hidden');
+      } else {
+        inputField.classList.add('hidden');
+      }
+    }
+
+    // Attach the toggleVisibility function to all checkboxes
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', toggleVisibility);
+    });
+
+    const calculateCost = async ()=> {
+      let inputs = {};
+      json_data = {}
+      json_data['Car'] = 1
+   
+
+      if (document.getElementById('includeTotalMass').checked) {
+        json_data['Total Mass'] = parseFloat(document.getElementById('totalMass').value) || 1.47;
+      }
+
+      if (document.getElementById('includePaintedBodyColour').checked) {
+        json_data['Painted Body Colour'] = parseFloat(document.getElementById('paintedBodyColour').value) || 0.11;
+      }
+
+      if (document.getElementById('includePaintedGlossBlack').checked) {
+        json_data['Painted Gloss Black'] = parseFloat(document.getElementById('paintedGlossBlack').value) || 0.09;
+
+      }
+
+      if (document.getElementById('includeGrainedPlastic').checked) {
+        json_data['Grained plastic'] = parseFloat(document.getElementById('grainedPlastic').value) || 0.03;
+
+      }
+
+      if (document.getElementById('includeJobDate').checked) {
+        json_data['Job 1 Date'] = parseFloat(document.getElementById('jobDate').value) || 2020.77;
+
+      }
+
+      if (document.getElementById('includeCountryOfProduction').checked) {
+        json_data['Country of production'] = parseFloat(document.getElementById('countryOfProduction').value) || 'UK';
+
+      }
+
+      if (document.getElementById('includeVehicleVolume').checked) {
+        json_data['Vehicle Volume'] = parseFloat(document.getElementById('vehicleVolume').value) || 5388.88;
+
+      }
+
+      if (document.getElementById('includeNumberOfParts').checked) {
+        json_data['Number of parts within construction'] = parseFloat(document.getElementById('numberOfParts').value) || 2.55;
+
+      }
+      if (!json_data.hasOwnProperty('Car')) {
+          json_data['Car'] = 1;
+      }
+
+      if (!json_data.hasOwnProperty('Total Mass')) {
+          json_data['Total Mass'] = 1.47;
+      }
+
+      if (!json_data.hasOwnProperty('Painted Body Colour')) {
+          json_data['Painted Body Colour'] = 0.11;
+      }
+
+      if (!json_data.hasOwnProperty('Painted Gloss Black')) {
+          json_data['Painted Gloss Black'] = 0.09;
+      }
+
+      if (!json_data.hasOwnProperty('Grained plastic')) {
+          json_data['Grained plastic'] = 0.03;
+      }
+
+      if (!json_data.hasOwnProperty('Job 1 Date')) {
+          json_data['Job 1 Date'] = 2020.77;
+      }
+
+      if (!json_data.hasOwnProperty('Country of production')) {
+          json_data['Country of production'] = 'UK';
+      }
+
+      if (!json_data.hasOwnProperty('Vehicle Volume')) {
+          json_data['Vehicle Volume'] = 5388.88;
+      }
+
+      if (!json_data.hasOwnProperty('Number of parts within construction')) {
+          json_data['Number of parts within construction'] = 2.55;
+      }
+
+
+      console.log(json_data);
+
+            try {
+                const response = await fetch('/predict_data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(json_data)
+                });
+
+                const responseText = await response.text();
+                console.log(responseText)
+                const predictedCostDiv = document.getElementById('predictedCost');
+                predictedCostDiv.textContent = `${responseText}`
+
+            } catch (error) {
+                console.error('Error sending data:', error);
+            }
+    }
+
+  </script>
+</body>
+</html>
